@@ -1,0 +1,19 @@
+name: flutter_design_system
+description: "Pacote Flutter modular de Design System e Frontend reutilizável com ThemeExtensions, componentes anti-overflow e layouts responsivos."
+version: 0.1.0
+repository: https://github.com/RuyXingubit/flutter-design-system
+
+environment:
+  sdk: ^3.13.3
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
