@@ -8,7 +8,8 @@ void main() {
 /// Interactive Technical Catalog for the Flutter Design System.
 ///
 /// Inspects live [ThemeExtension] tokens, component variants, security flags,
-/// neutral state views, and responsive breakpoints without any fake business data.
+/// neutral state views, responsive breakpoints, and live runtime customization
+/// ([DsThemeController] + [DsThemeSettingsPanel]) without any fake business data.
 class DsShowcaseApp extends StatefulWidget {
   const DsShowcaseApp({super.key});
 
@@ -17,54 +18,57 @@ class DsShowcaseApp extends StatefulWidget {
 }
 
 class _DsShowcaseAppState extends State<DsShowcaseApp> {
-  ThemeMode _themeMode = ThemeMode.light;
-  bool _useWhiteLabelOverride = false;
+  late final DsThemeController _themeController = DsThemeController(
+    initialConfig: const DsRuntimeConfig(themeMode: ThemeMode.light),
+  );
   int _selectedSectionIndex = 0;
 
+  @override
+  void dispose() {
+    _themeController.dispose();
+    super.dispose();
+  }
+
   void _toggleThemeMode() {
-    setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    });
+    final nextMode = _themeController.themeMode == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
+    _themeController.setThemeMode(nextMode);
   }
 
   void _toggleWhiteLabel() {
-    setState(() {
-      _useWhiteLabelOverride = !_useWhiteLabelOverride;
-    });
+    final hasCustom = _themeController.config.customPrimaryColor != null;
+    _themeController.setPrimaryColor(
+      hasCustom ? null : const Color(0xFF059669),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final lightColors = _useWhiteLabelOverride
-        ? DsColorTokens.light().copyWith(
-            primary: const Color(0xFF059669),
-            primaryContainer: const Color(0xFFD1FAE5),
-          )
-        : DsColorTokens.light();
-
-    final darkColors = _useWhiteLabelOverride
-        ? DsColorTokens.dark().copyWith(
-            primary: const Color(0xFF10B981),
-            primaryContainer: const Color(0xFF064E3B),
-          )
-        : DsColorTokens.dark();
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Design System — Catálogo Técnico',
-      themeMode: _themeMode,
-      theme: DsTheme.light(colorsOverride: lightColors),
-      darkTheme: DsTheme.dark(colorsOverride: darkColors),
-      home: _ShowcaseShell(
-        selectedIndex: _selectedSectionIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedSectionIndex = index);
+    return DsThemeScope(
+      controller: _themeController,
+      child: ListenableBuilder(
+        listenable: _themeController,
+        builder: (context, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Flutter Design System — Catálogo Técnico',
+            themeMode: _themeController.themeMode,
+            theme: _themeController.lightTheme,
+            darkTheme: _themeController.darkTheme,
+            home: _ShowcaseShell(
+              selectedIndex: _selectedSectionIndex,
+              onDestinationSelected: (index) {
+                setState(() => _selectedSectionIndex = index);
+              },
+              isDarkMode: _themeController.themeMode == ThemeMode.dark,
+              useWhiteLabelOverride:
+                  _themeController.config.customPrimaryColor != null,
+              onToggleThemeMode: _toggleThemeMode,
+              onToggleWhiteLabel: _toggleWhiteLabel,
+            ),
+          );
         },
-        isDarkMode: _themeMode == ThemeMode.dark,
-        useWhiteLabelOverride: _useWhiteLabelOverride,
-        onToggleThemeMode: _toggleThemeMode,
-        onToggleWhiteLabel: _toggleWhiteLabel,
       ),
     );
   }
@@ -102,6 +106,11 @@ class _ShowcaseShell extends StatelessWidget {
       label: 'Estados & Layout',
       icon: Icons.dashboard_customize_outlined,
       selectedIcon: Icons.dashboard_customize,
+    ),
+    DsNavigationItem(
+      label: 'Runtime Config',
+      icon: Icons.tune_outlined,
+      selectedIcon: Icons.tune,
     ),
   ];
 
@@ -159,6 +168,34 @@ class _ShowcaseShell extends StatelessWidget {
           _TokensCatalogSection(),
           _ComponentsCatalogSection(),
           _StatesAndLayoutCatalogSection(),
+          _RuntimeConfigCatalogSection(),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuntimeConfigCatalogSection extends StatelessWidget {
+  const _RuntimeConfigCatalogSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final spacing = context.dsSpacing;
+    final typography = context.dsTypography;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'DsThemeSettingsPanel — Personalização pelo Usuário em Runtime',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: typography.headline,
+          ),
+          SizedBox(height: spacing.sm),
+          const DsThemeSettingsPanel(),
         ],
       ),
     );

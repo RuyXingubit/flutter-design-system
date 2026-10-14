@@ -4,10 +4,10 @@ import '../tokens/ds_color_tokens.dart';
 import '../tokens/ds_radius_tokens.dart';
 import '../tokens/ds_spacing_tokens.dart';
 import '../tokens/ds_typography_tokens.dart';
+import 'ds_theme_controller.dart';
 
-/// Ergonomic [BuildContext] getters for accessing Design System tokens and
-/// responsive window size with safe fallbacks if a consumer widget is mounted
-/// outside a [DsTheme] tree.
+/// Ergonomic [BuildContext] getters for accessing Design System tokens,
+/// responsive window size, and runtime theme controller with safe fallbacks.
 extension DsThemeBuildContextExtension on BuildContext {
   /// Returns the active [DsColorTokens] from the ambient [Theme].
   DsColorTokens get dsColors {
@@ -49,4 +49,12 @@ extension DsThemeBuildContextExtension on BuildContext {
   /// Returns the semantic [DsWindowSize] (`compact`, `medium`, `expanded`)
   /// for the current viewport width.
   DsWindowSize get dsWindowSize => DsBreakpoints.of(this);
+
+  /// Returns the nearest [DsThemeController] from [DsThemeScope] for runtime
+  /// user customization.
+  DsThemeController get dsThemeController => DsThemeScope.of(this);
+
+  /// Returns the nearest [DsThemeController] from [DsThemeScope], or `null`
+  /// if no [DsThemeScope] is mounted above this context.
+  DsThemeController? get maybeDsThemeController => DsThemeScope.maybeOf(this);
 }

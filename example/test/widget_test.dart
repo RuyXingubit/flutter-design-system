@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-      'DsShowcaseApp navigates across Tokens, Componentes, and Estados & Layout',
+      'DsShowcaseApp navigates across Tokens, Componentes, Estados & Layout, and Runtime Config',
       (tester) async {
     addTearDown(tester.view.reset);
     tester.view.physicalSize = const Size(1280, 900);
@@ -35,6 +35,16 @@ void main() {
     await tester.tap(find.text('Estados & Layout'));
     await tester.pumpAndSettle();
     expect(find.text('DsStateView — Estados Técnicos Reais'), findsOneWidget);
+
+    // Navigate to Runtime Config tab
+    await tester.tap(find.text('Runtime Config'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'DsThemeSettingsPanel — Personalização pelo Usuário em Runtime',
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
